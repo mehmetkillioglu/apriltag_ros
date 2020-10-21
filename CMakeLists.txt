@@ -26,6 +26,9 @@ ament_target_dependencies(AprilTagNode rclcpp rclcpp_components sensor_msgs apri
 target_link_libraries(AprilTagNode apriltag::apriltag)
 rclcpp_components_register_nodes(AprilTagNode "AprilTagNode")
 
+add_executable(apriltag_node src/apriltag_node.cpp)
+target_link_libraries(apriltag_node AprilTagNode)
+
 ament_environment_hooks(${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH})
 
 install(TARGETS AprilTagNode
@@ -34,6 +37,7 @@ install(TARGETS AprilTagNode
     LIBRARY DESTINATION lib
 )
 
+install(TARGETS apriltag_node DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY cfg/ DESTINATION share/${PROJECT_NAME}/cfg)
 
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})

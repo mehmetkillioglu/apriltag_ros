@@ -2,13 +2,14 @@
 
 // ros
 #include <rclcpp/rclcpp.hpp>
+#include "rcl_interfaces/msg/set_parameters_result.hpp"
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <apriltag_msgs/msg/april_tag_detection.hpp>
 #include <apriltag_msgs/msg/april_tag_detection_array.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
 
-#include <image_transport/camera_subscriber.hpp>
+#include <image_transport/camera_subscriber.h>
 
 // apriltag
 #include <apriltag.h>
@@ -32,10 +33,16 @@ private:
     const int max_hamming;
     std::unordered_map<int, std::string> tag_frames;
     std::unordered_map<int, double> tag_sizes;
+    int process_rate;
+    int cnt_;
 
     Mat3 K;
+    sensor_msgs::msg::Image::ConstSharedPtr image_copy;
+    sensor_msgs::msg::CameraInfo::ConstSharedPtr cam_info_copy;
+
 
     const bool z_up;
+    rclcpp::TimerBase::SharedPtr timer_;
 
     // function pointer for tag family creation / destruction
     static const std::map<std::string, apriltag_family_t *(*)(void)> tag_create;
@@ -48,4 +55,7 @@ private:
     void onCamera(const sensor_msgs::msg::Image::ConstSharedPtr& msg_img, const sensor_msgs::msg::CameraInfo::ConstSharedPtr& msg_ci);
 
     void getPose(const matd_t& H, geometry_msgs::msg::Transform& t, const double size) const;
+    void detectApriltag();
+    rcl_interfaces::msg::SetParametersResult parametersCallback(
+        const std::vector<rclcpp::Parameter> &parameters);
 };
