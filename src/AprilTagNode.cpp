@@ -123,11 +123,6 @@ rcl_interfaces::msg::SetParametersResult AprilTagNode::parametersCallback(
 }
 
 
-/*
-void AprilTagNode::onCameraBuffer(const sensor_msgs::msg::Image::ConstSharedPtr& msg_img, const sensor_msgs::msg::CameraInfo::ConstSharedPtr& msg_ci){
-
-}*/
-
 void AprilTagNode::detectApriltag(){
     if (cnt_ < (20/process_rate) - 1){
         cnt_++;
@@ -153,7 +148,6 @@ void AprilTagNode::detectApriltag(){
     msg_detections.header = image_copy->header;
 
     tf2_msgs::msg::TFMessage tfs;
-
     for (int i = 0; i < zarray_size(detections); i++) {
         apriltag_detection_t* det;
         zarray_get(detections, i, &det);
@@ -178,9 +172,10 @@ void AprilTagNode::detectApriltag(){
 
         // 3D orientation and position
         geometry_msgs::msg::TransformStamped tf;
+        geometry_msgs::msg::TransformStamped tf_z;
         tf.header = image_copy->header;
         // set child frame name by generic tag name or configured tag name
-        tf.child_frame_id = tag_frames.count(det->id) ? tag_frames.at(det->id) : std::string(det->family->name)+":"+std::to_string(det->id);
+        tf.child_frame_id = tag_frames.count(det->id) ? tag_frames.at(det->id) :  "tag_"+std::to_string(det->id);
         getPose(*(det->H), tf.transform, tag_sizes.count(det->id) ? tag_sizes.at(det->id) : tag_edge_size);
 
         tfs.transforms.push_back(tf);
@@ -197,64 +192,6 @@ void AprilTagNode::onCamera(const sensor_msgs::msg::Image::ConstSharedPtr& msg_i
     // copy camera intrinsics
     image_copy = msg_img;
     cam_info_copy = msg_ci;
-/*
-    std::memcpy(K.data(), msg_ci->k.data(), 9*sizeof(double));
-
-    // convert to 8bit monochrome image
-    const cv::Mat img_uint8 = cv_bridge::toCvShare(msg_img, "mono8")->image;
-
-    image_u8_t im = {
-        .width = img_uint8.cols,
-        .height = img_uint8.rows,
-        .stride = img_uint8.cols,
-        .buf = img_uint8.data
-    };
-
-    // detect tags
-    zarray_t* detections = apriltag_detector_detect(td, &im);
-
-    apriltag_msgs::msg::AprilTagDetectionArray msg_detections;
-    msg_detections.header = msg_img->header;
-
-    tf2_msgs::msg::TFMessage tfs;
-
-    for (int i = 0; i < zarray_size(detections); i++) {
-        apriltag_detection_t* det;
-        zarray_get(detections, i, &det);
-
-        // ignore untracked tags
-        if(!tag_frames.empty() && !tag_frames.count(det->id)) { continue; }
-
-        // reject detections with more corrected bits than allowed
-        if(det->hamming>max_hamming) { continue; }
-
-        // detection
-        apriltag_msgs::msg::AprilTagDetection msg_detection;
-        msg_detection.family = std::string(det->family->name);
-        msg_detection.id = det->id;
-        msg_detection.hamming = det->hamming;
-        msg_detection.decision_margin = det->decision_margin;
-        msg_detection.centre.x = det->c[0];
-        msg_detection.centre.y = det->c[1];
-        std::memcpy(msg_detection.corners.data(), det->p, sizeof(double)*8);
-        std::memcpy(msg_detection.homography.data(), det->H->data, sizeof(double)*9);
-        msg_detections.detections.push_back(msg_detection);
-
-        // 3D orientation and position
-        geometry_msgs::msg::TransformStamped tf;
-        tf.header = msg_img->header;
-        // set child frame name by generic tag name or configured tag name
-        tf.child_frame_id = tag_frames.count(det->id) ? tag_frames.at(det->id) : std::string(det->family->name)+":"+std::to_string(det->id);
-        getPose(*(det->H), tf.transform, tag_sizes.count(det->id) ? tag_sizes.at(det->id) : tag_edge_size);
-
-        tfs.transforms.push_back(tf);
-    }
-
-    pub_detections->publish(msg_detections);
-    pub_tf->publish(tfs);
-
-    apriltag_detections_destroy(detections);
-    */
 }
 
 void AprilTagNode::getPose(const matd_t& H, geometry_msgs::msg::Transform& t, const double size) const {
@@ -279,7 +216,7 @@ void AprilTagNode::getPose(const matd_t& H, geometry_msgs::msg::Transform& t, co
     // the corner coordinates of the tag in the canonical frame are (+/-1, +/-1)
     // hence the scale is half of the edge size
     const Eigen::Vector3d tt = T.rightCols<1>() / ((T.col(0).norm() + T.col(0).norm())/2.0) * (size/2.0);
-
+    
     const Eigen::Quaterniond q(R);
 
     t.translation.x = tt.x();
@@ -289,6 +226,8 @@ void AprilTagNode::getPose(const matd_t& H, geometry_msgs::msg::Transform& t, co
     t.rotation.x = q.x();
     t.rotation.y = q.y();
     t.rotation.z = q.z();
+
+
 }
 
 #include <rclcpp_components/register_node_macro.hpp>

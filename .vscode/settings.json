@@ -1,0 +1,15 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/mehmet/eloquent_ws/build/mir_robot_ros2",
+        "/home/mehmet/eloquent_ws/install/mir_robot_ros2/lib/python3.6/site-packages",
+        "/home/mehmet/eloquent_ws/install/sdc21x0/lib/python3.6/site-packages",
+        "/home/mehmet/eloquent_ws/build/ros2_message_converter",
+        "/home/mehmet/eloquent_ws/install/ros2_message_converter/lib/python3.6/site-packages",
+        "/home/mehmet/eloquent_ws/install/realsense_msgs/lib/python3.6/site-packages",
+        "/home/mehmet/eloquent_ws/install/mir_msgs/lib/python3.6/site-packages",
+        "/home/mehmet/eloquent_ws/install/mir_actions/lib/python3.6/site-packages",
+        "/home/mehmet/eloquent_ws/install/aruco/lib/python3.6/site-packages",
+        "/home/mehmet/eloquent_ws/install/apriltag_msgs/lib/python3.6/site-packages",
+        "/opt/ros/eloquent/lib/python3.6/site-packages"
+    ]
+}
