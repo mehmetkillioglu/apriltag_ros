@@ -151,6 +151,19 @@ void AprilTagNode::detectApriltag(){
     for (int i = 0; i < zarray_size(detections); i++) {
         apriltag_detection_t* det;
         zarray_get(detections, i, &det);
+        apriltag_detection_info_t info;
+        info.det = det;
+        info.tagsize = tag_edge_size;
+        info.fx = K(0);
+        info.fy = K(4);
+        info.cx = K(2);
+        info.cy = K(5);
+        apriltag_pose_t pose;
+        double err = estimate_tag_pose(&info, &pose);
+        if (err == HUGE_VAL){return;}
+
+
+
 
         // ignore untracked tags
         if(!tag_frames.empty() && !tag_frames.count(det->id)) { continue; }
@@ -173,12 +186,23 @@ void AprilTagNode::detectApriltag(){
         // 3D orientation and position
         geometry_msgs::msg::TransformStamped tf;
         geometry_msgs::msg::TransformStamped tf_z;
-        tf.header = image_copy->header;
+        tf_z.header = image_copy->header;
         // set child frame name by generic tag name or configured tag name
-        tf.child_frame_id = tag_frames.count(det->id) ? tag_frames.at(det->id) :  "tag_"+std::to_string(det->id);
-        getPose(*(det->H), tf.transform, tag_sizes.count(det->id) ? tag_sizes.at(det->id) : tag_edge_size);
+        tf_z.child_frame_id = tag_frames.count(det->id) ? tag_frames.at(det->id) :  "tag_"+std::to_string(det->id);
+        //getPose(*(det->H), tf.transform, tag_sizes.count(det->id) ? tag_sizes.at(det->id) : tag_edge_size);
+        
+        const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> R_T(pose.R->data);
+        const Eigen::Quaterniond q(R_T);
+        const Eigen::Vector3d tt(pose.t->data);
 
-        tfs.transforms.push_back(tf);
+        tf_z.transform.translation.x = tt.x();
+        tf_z.transform.translation.y = tt.y();
+        tf_z.transform.translation.z = tt.z();
+        tf_z.transform.rotation.w = q.w();
+        tf_z.transform.rotation.x = q.x();
+        tf_z.transform.rotation.y = q.y();
+        tf_z.transform.rotation.z = q.z();
+        tfs.transforms.push_back(tf_z);
     }
 
     pub_detections->publish(msg_detections);

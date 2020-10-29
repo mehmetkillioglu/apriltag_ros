@@ -16,7 +16,7 @@ cfg_41h12 = {
     "refine-edges": 1,
     "threads": 1,
     "refine-decode": 0,
-    "refine-pose": 0,
+    "refine-pose": 1,
     "debug": 0
 
 }

@@ -13,6 +13,7 @@
 
 // apriltag
 #include <apriltag.h>
+#include <apriltag_pose.h>
 
 #include <Eigen/Core>
 
